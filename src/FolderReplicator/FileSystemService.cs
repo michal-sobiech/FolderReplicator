@@ -11,7 +11,7 @@ public class FileSystemService(IFileSystem fs) {
         return _fs.DirectoryExists(fullPath);
     }
 
-    public IEnumerable<UPath> EnumerateSubdirRelPaths(UPath dir) {
+    public IEnumerable<UPath> EnumerateFsNodeRelPaths(UPath dir) {
         return _fs.EnumerateDirectories(dir, "*", SearchOption.AllDirectories)
             .Select(absPath => FileSystemUtils.GetRelativePath(dir, absPath));
     }

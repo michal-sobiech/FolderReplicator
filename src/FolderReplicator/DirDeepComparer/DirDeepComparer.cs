@@ -72,25 +72,25 @@ public class DirDeepComparer(
         UPath referenceDir,
         UPath targetDir
     ) {
-        HashSet<UPath> sharedPathSet = [];
-        HashSet<UPath> onlyInReferencePathSet = [];
+        HashSet<UPath> sharedPaths = [];
+        HashSet<UPath> onlyInReferencePaths = [];
 
-        foreach (UPath relSubdir in _fsService.EnumerateSubdirRelPaths(referenceDir)) {
+        foreach (UPath relSubdir in _fsService.EnumerateFsNodeRelPaths(referenceDir)) {
             if (_fsService.DirHasPath(targetDir, relSubdir)) {
-                sharedPathSet.Add(relSubdir);
+                sharedPaths.Add(relSubdir);
             } else {
-                onlyInReferencePathSet.Add(relSubdir);
+                onlyInReferencePaths.Add(relSubdir);
             }
         }
 
-        return (sharedPathSet, onlyInReferencePathSet);
+        return (sharedPaths, onlyInReferencePaths);
     }
 
     private IEnumerable<UPath> FindOnlyInTargetPaths(
         UPath referenceDir,
         UPath targetDir
     ) {
-        return _fsService.EnumerateSubdirRelPaths(targetDir)
+        return _fsService.EnumerateFsNodeRelPaths(targetDir)
             .Where(subdir => !_fsService.DirHasPath(referenceDir, subdir));
     }
 }
