@@ -1,6 +1,6 @@
 using Zio;
 
-namespace FolderReplicator.DirDeepComparer;
+namespace FolderReplicator.FileSystem.Directory;
 
 public enum DirDeepCompareResultRowStatus {
     IDENTICAL,

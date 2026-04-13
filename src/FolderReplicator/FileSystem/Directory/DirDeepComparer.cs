@@ -2,7 +2,7 @@ using FolderReplicator.FileSystem.Node;
 
 using Zio;
 
-namespace FolderReplicator.DirDeepComparer;
+namespace FolderReplicator.FileSystem.Directory;
 
 public class DirDeepComparer(
     IFileSystem fs,
