@@ -1,3 +1,4 @@
+using FolderReplicator.DataStructures.Tree;
 using FolderReplicator.FileSystem.Node;
 
 using Zio;
@@ -18,79 +19,91 @@ public class DirDeepComparer(
         UPath referenceDir,
         UPath targetDir
     ) {
-        List<DirDeepCompareResultRow> output = [];
+        var referenceBase = referenceDir.GetDirectory();
+        var targetBase = targetDir.GetDirectory();
 
-        var (sharedPaths, onlyInReferencePaths, onlyInTargetPaths) = GroupPaths(referenceDir, targetDir);
+        var referenceTree = _fsService.CreateTreeFromPath(referenceDir);
+        var targetTree = _fsService.CreateTreeFromPath(targetDir);
 
-        output.AddRange(onlyInReferencePaths.Select(path =>
-            new DirDeepCompareResultRow(
-                path,
-                DirDeepCompareResultRowStatus.ONLY_IN_REFERENCE
-            )
-        ));
-
-        output.AddRange(onlyInTargetPaths.Select(path =>
-            new DirDeepCompareResultRow(
-                path,
-                DirDeepCompareResultRowStatus.ONLY_IN_TARGET
-            )
-        ));
-
-        output.AddRange(sharedPaths.Select(path => {
-            UPath node1 = referenceDir / path;
-            UPath node2 = targetDir / path;
-
-            bool areNodesEqual = _fsNodeComparer.AreNodesEqual(node1, node2);
-            var status = areNodesEqual
-                ? DirDeepCompareResultRowStatus.IDENTICAL
-                : DirDeepCompareResultRowStatus.DIFFERENT;
-
-            return new DirDeepCompareResultRow(path, status);
-        }));
-
-        return output;
+        return [
+            ..CalcDifferentAndOnlyInReference(referenceBase, targetBase, referenceTree),
+            ..CalcOnlyInTarget(referenceBase, targetBase, targetTree)
+        ];
     }
 
-    private (
-        IEnumerable<UPath> sharedPaths,
-        IEnumerable<UPath> onlyInReferencePaths,
-        IEnumerable<UPath> onlyInTargetPaths
-    ) GroupPaths(
-        UPath referenceDir,
-        UPath targetDir
+    private IEnumerable<DirDeepCompareResultRow> CalcDifferentAndOnlyInReference(
+        UPath referenceBase,
+        UPath targetBase,
+        TreeNode<string> referenceTree
     ) {
-        var (sharedPath, onlyInReferencePaths) = FindSharedAndOnlyInReferencePaths(referenceDir, targetDir);
-        var onlyInTargetPaths = FindOnlyInTargetPaths(referenceDir, targetDir);
+        List<DirDeepCompareResultRow> result = [];
 
-        return (sharedPath, onlyInReferencePaths, onlyInTargetPaths);
-    }
-
-    private (
-        IEnumerable<UPath> sharedPaths,
-        IEnumerable<UPath> onlyInReferencePaths
-    ) FindSharedAndOnlyInReferencePaths(
-        UPath referenceDir,
-        UPath targetDir
-    ) {
-        HashSet<UPath> sharedPaths = [];
-        HashSet<UPath> onlyInReferencePaths = [];
-
-        foreach (UPath relSubdir in _fsService.EnumerateFsNodeRelPaths(referenceDir)) {
-            if (_fsService.DirHasPath(targetDir, relSubdir)) {
-                sharedPaths.Add(relSubdir);
-            } else {
-                onlyInReferencePaths.Add(relSubdir);
+        Func<TreeNode<string>, bool> OnTreeNodeVisit = treeNode => {
+            if (treeNode.Parent == null) {
+                // Skip the root
+                return false;
             }
-        }
 
-        return (sharedPaths, onlyInReferencePaths);
+            List<string> treeNodePath = treeNode.GetPath();
+            UPath fsNodeRelPath = FileSystemUtils.CreateUPath(treeNodePath);
+
+            UPath referenceFsNode = referenceBase / fsNodeRelPath;
+            UPath targetFsNode = targetBase / fsNodeRelPath;
+
+            bool existsInTarget = _fsService.NodeExists(targetFsNode);
+            if (!existsInTarget) {
+                var resultRow = new NodeOnlyInReference(targetFsNode);
+                result.Add(resultRow);
+                return true;
+            }
+
+            if (!_fsNodeComparer.AreNodesEqual(referenceFsNode, targetFsNode)) {
+                var resultRow = new DifferentNodes(targetFsNode);
+                result.Add(resultRow);
+                return true;
+            }
+
+            return false;
+        };
+
+        TreeUtils.BfsPruned(referenceTree, OnTreeNodeVisit);
+
+        return result;
     }
 
-    private IEnumerable<UPath> FindOnlyInTargetPaths(
-        UPath referenceDir,
-        UPath targetDir
+    private IEnumerable<DirDeepCompareResultRow> CalcOnlyInTarget(
+        UPath referenceBase,
+        UPath targetBase,
+        TreeNode<string> targetTree
     ) {
-        return _fsService.EnumerateFsNodeRelPaths(targetDir)
-            .Where(subdir => !_fsService.DirHasPath(referenceDir, subdir));
+        List<DirDeepCompareResultRow> result = [];
+
+        Func<TreeNode<string>, bool> OnTreeNodeVisit = treeNode => {
+            if (treeNode.Parent == null) {
+                // Skip the root
+                return false;
+            }
+
+            List<string> treeNodePath = treeNode.GetPath();
+            UPath fsNodeRelPath = FileSystemUtils.CreateUPath(treeNodePath);
+
+            UPath referenceFsNode = referenceBase / fsNodeRelPath;
+            UPath targetFsNode = targetBase / fsNodeRelPath;
+
+            bool existsInReference = _fsService.NodeExists(referenceFsNode);
+            if (!existsInReference) {
+                var resultRow = new NodeOnlyInReference(targetFsNode);
+                result.Add(resultRow);
+                return true;
+            }
+
+            return false;
+        };
+
+        TreeUtils.BfsPruned(targetTree, OnTreeNodeVisit);
+
+        return result;
     }
+
+
 }
