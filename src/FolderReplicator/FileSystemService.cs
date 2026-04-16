@@ -48,8 +48,8 @@ public class FileSystemService(IFileSystem fs) {
         }
     }
 
-    public TreeNode<UPath> CreateTreeFromPath(UPath path) {
-        var node = new TreeNode<UPath>(path);
+    public TreeNode<string> CreateTreeFromPath(UPath path) {
+        var node = new TreeNode<string>(path.GetName());
 
         if (_fs.DirectoryExists(path)) {
             foreach (var dir in _fs.EnumerateDirectories(path)) {
@@ -58,7 +58,8 @@ public class FileSystemService(IFileSystem fs) {
             }
 
             foreach (var file in _fs.EnumerateFiles(path)) {
-                var child = new TreeNode<UPath>(file);
+                var child = new TreeNode<string>(file.GetName());
+                node.AddChild(child);
             }
         }
 
