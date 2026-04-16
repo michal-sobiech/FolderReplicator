@@ -1,3 +1,5 @@
+using FolderReplicator.DataStructures.Tree;
+
 using Zio;
 
 namespace FolderReplicator;
@@ -14,6 +16,53 @@ public class FileSystemService(IFileSystem fs) {
     public IEnumerable<UPath> EnumerateFsNodeRelPaths(UPath dir) {
         return _fs.EnumerateDirectories(dir, "*", SearchOption.AllDirectories)
             .Select(absPath => FileSystemUtils.GetRelativePath(dir, absPath));
+    }
+
+    public void DeleteNode(UPath node) {
+        if (_fs.FileExists(node)) {
+            _fs.DeleteFile(node);
+        } else if (_fs.DirectoryExists(node)) {
+            _fs.DeleteDirectory(node, true);
+        }
+    }
+
+    public void CopyNode(UPath src, UPath dest) {
+        if (_fs.FileExists(src)) {
+            _fs.CopyFile(src, dest, overwrite: true);
+        } else if (_fs.DirectoryExists(src)) {
+            CopyDirectory(src, dest);
+        }
+    }
+
+    public void CopyDirectory(UPath src, UPath dest) {
+        _fs.CreateDirectory(dest);
+
+        foreach (UPath file in _fs.EnumerateFiles(src)) {
+            UPath targetFile = dest / file.GetName();
+            _fs.CopyFile(file, targetFile, overwrite: true);
+        }
+
+        foreach (UPath dir in _fs.EnumerateDirectories(src)) {
+            UPath targetDir = dest / dir.GetName();
+            CopyDirectory(dir, targetDir);
+        }
+    }
+
+    public TreeNode<UPath> CreateTreeFromPath(UPath path) {
+        var node = new TreeNode<UPath>(path);
+
+        if (_fs.DirectoryExists(path)) {
+            foreach (var dir in _fs.EnumerateDirectories(path)) {
+                var child = CreateTreeFromPath(dir);
+                node.AddChild(child);
+            }
+
+            foreach (var file in _fs.EnumerateFiles(path)) {
+                var child = new TreeNode<UPath>(file);
+            }
+        }
+
+        return node;
     }
 
 }
