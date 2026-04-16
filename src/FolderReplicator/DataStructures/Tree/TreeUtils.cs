@@ -1,8 +1,4 @@
-using System.Collections;
-
-using FolderReplicator.DataStructures.Tree;
-
-namespace FolderReplicator.DataStructures;
+namespace FolderReplicator.DataStructures.Tree;
 
 public static class TreeUtils {
 
