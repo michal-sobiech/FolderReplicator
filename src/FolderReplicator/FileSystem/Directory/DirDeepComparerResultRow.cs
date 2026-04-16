@@ -2,14 +2,9 @@ using Zio;
 
 namespace FolderReplicator.FileSystem.Directory;
 
-public enum DirDeepCompareResultRowStatus {
-    IDENTICAL,
-    ONLY_IN_REFERENCE,
-    DIFFERENT,
-    ONLY_IN_TARGET,
-}
+public abstract record DirDeepCompareResultRow(UPath FsNodePath);
 
-public record DirDeepCompareResultRow(
-    UPath Directory,
-    DirDeepCompareResultRowStatus Status
-);
+public record IdenticalNodes(UPath FsNodePath) : DirDeepCompareResultRow(FsNodePath);
+public record DifferentFiles(UPath FsNodePath) : DirDeepCompareResultRow(FsNodePath);
+public record NodeOnlyInReference(UPath FsNodePath) : DirDeepCompareResultRow(FsNodePath);
+public record NodeOnlyInTarget(UPath FsNodePath) : DirDeepCompareResultRow(FsNodePath);
