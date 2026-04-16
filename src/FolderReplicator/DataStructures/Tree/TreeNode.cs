@@ -6,12 +6,12 @@ public class TreeNode<T>(T value) {
     public TreeNode<T>? Parent { get; set; }
     public List<TreeNode<T>> Children { get; } = [];
 
-    public List<TreeNode<T>> GetPath() {
-        var path = new List<TreeNode<T>>();
+    public List<T> GetPath() {
+        var path = new List<T>();
 
         var node = this;
         while (node.Parent != null) {
-            path.Add(node);
+            path.Add(node.Value);
         }
 
         path.Reverse();
