@@ -4,7 +4,7 @@ using Zio;
 
 namespace FolderReplicator;
 
-public class FolderReplicator(
+public class FolderReplicationService(
     DirDeepComparer dirDeepComparer,
     FileSystemService fileSystemService,
     IFileSystem fs
