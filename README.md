@@ -1,8 +1,8 @@
 # How to run
 1. `cd` to project's main directory
 2. `dotnet build`
-4. Find the created `FolderReplicator.dll`, it should be in `src/FolderReplicator/bin/Debug/net8.0/FolderReplicator.dll`
-5. Run it: `dotnet FolderReplicator.dll replicate [src-folder] [dest-folder] [period-ms]`
+3. Find the created `FolderReplicator.dll`, it should be in `src/FolderReplicator/bin/Debug/net8.0/FolderReplicator.dll`
+4. Run it: `dotnet FolderReplicator.dll replicate [src-folder] [dest-folder] [period-ms]`
 
 # How to run in a safe environment
 1. `cd` to project's main directory
