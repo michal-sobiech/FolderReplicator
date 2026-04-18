@@ -17,6 +17,11 @@ public class FolderReplicationService(
     public void ReplicateFolder(UPath referenceDir, UPath targetDir) {
         var comparisonResult = _dirDeepComparer.DeepCompareDirs(referenceDir, targetDir);
 
+        Console.WriteLine($"LOG_30 {comparisonResult.Count()}");
+        foreach (var row in comparisonResult) {
+            Console.WriteLine($"LOG_31 {row.GetType()} {row.FsNodePath}");
+        }
+
         var different = comparisonResult.OfType<DifferentNodes>()
             .Select(x => x.FsNodePath)
             .ToList();
@@ -40,7 +45,9 @@ public class FolderReplicationService(
     }
 
     private void CopyNodes(UPath src, IEnumerable<UPath> nodes, UPath dest) {
+        Console.WriteLine("LOG_40");
         foreach (var node in nodes) {
+            Console.WriteLine($"LOG_41, {node}");
             UPath srcAbs = src / node;
             UPath destAbs = dest / node;
 

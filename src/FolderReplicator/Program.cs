@@ -2,6 +2,7 @@
 
 using FolderReplicator;
 using FolderReplicator.FileSystem.Directory;
+using FolderReplicator.FileSystem.Node;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,8 +11,9 @@ using Zio.FileSystems;
 
 var services = new ServiceCollection();
 
-services.AddSingleton<IFileSystem, FileSystem>();
+services.AddSingleton<IFileSystem>(new PhysicalFileSystem());
 services.AddSingleton<FileSystemService>();
+services.AddSingleton<FileSystemNodeComparer>();
 services.AddSingleton<DirDeepComparer>();
 services.AddSingleton<FolderReplicationService>();
 services.AddSingleton<ReplicateCommandHandler>();
@@ -22,12 +24,13 @@ var srcArg = new Argument<string>("src");
 var destArg = new Argument<string>("dest");
 var periodMsArg = new Argument<int>("period-ms");
 
-var replicateCommand = new Command("replicate-dir");
+var replicateCommand = new Command("replicate");
 replicateCommand.Arguments.Add(srcArg);
 replicateCommand.Arguments.Add(destArg);
 replicateCommand.Arguments.Add(periodMsArg);
 
 replicateCommand.SetAction(result => {
+
     UPath src = new UPath(
         result.GetValue(srcArg)
         ?? throw new ArgumentNullException("src"))

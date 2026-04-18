@@ -39,6 +39,8 @@ public class DirDeepComparer(
         List<DirDeepCompareResultRow> result = [];
 
         Func<TreeNode<string>, bool> OnTreeNodeVisit = treeNode => {
+            Console.WriteLine($"LOG_23 node value: {treeNode.Value}, num children: {treeNode.Children.Count}");
+
             if (treeNode.Parent == null) {
                 // Skip the root
                 return false;
@@ -52,13 +54,13 @@ public class DirDeepComparer(
 
             bool existsInTarget = _fsService.NodeExists(targetFsNode);
             if (!existsInTarget) {
-                var resultRow = new NodeOnlyInReference(targetFsNode);
+                var resultRow = new NodeOnlyInReference(fsNodeRelPath);
                 result.Add(resultRow);
                 return true;
             }
 
             if (!_fsNodeComparer.AreNodesEqual(referenceFsNode, targetFsNode)) {
-                var resultRow = new DifferentNodes(targetFsNode);
+                var resultRow = new DifferentNodes(fsNodeRelPath);
                 result.Add(resultRow);
                 return true;
             }
@@ -92,7 +94,7 @@ public class DirDeepComparer(
 
             bool existsInReference = _fsService.NodeExists(referenceFsNode);
             if (!existsInReference) {
-                var resultRow = new NodeOnlyInReference(targetFsNode);
+                var resultRow = new NodeOnlyInTarget(fsNodeRelPath);
                 result.Add(resultRow);
                 return true;
             }

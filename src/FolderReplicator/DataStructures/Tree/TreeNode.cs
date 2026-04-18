@@ -12,6 +12,7 @@ public class TreeNode<T>(T value) {
         var node = this;
         while (node.Parent != null) {
             path.Add(node.Value);
+            node = node.Parent;
         }
 
         path.Reverse();

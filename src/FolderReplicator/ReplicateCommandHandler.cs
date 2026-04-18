@@ -6,10 +6,12 @@ public class ReplicateCommandHandler(FolderReplicationService folderReplicationS
 
     private readonly FolderReplicationService _folderReplicationService = folderReplicationService;
 
-    public async void Handle(UPath src, UPath dest, TimeSpan period) {
+    public void Handle(UPath src, UPath dest, TimeSpan period) {
+        Console.WriteLine("111");
         while (true) {
+            Console.WriteLine("TRY TO REPLICTE");
             _folderReplicationService.ReplicateFolder(src, dest);
-            await Task.Delay(period);
+            Thread.Sleep(period);
         }
     }
 

@@ -1,3 +1,5 @@
+using System.Data;
+
 using FolderReplicator.DataStructures.Tree;
 
 using Zio;
@@ -49,11 +51,11 @@ public class FileSystemService(IFileSystem fs) {
     }
 
     public TreeNode<string> CreateTreeFromPath(UPath path) {
-        var node = new TreeNode<string>(path.GetName());
-
         if (_fs.DirectoryExists(path)) {
+            var node = new TreeNode<string>(path.GetName());
+
             foreach (var dir in _fs.EnumerateDirectories(path)) {
-                var child = CreateTreeFromPath(dir);
+                var child = CreateTreeFromPath(path / dir);
                 node.AddChild(child);
             }
 
@@ -61,9 +63,13 @@ public class FileSystemService(IFileSystem fs) {
                 var child = new TreeNode<string>(file.GetName());
                 node.AddChild(child);
             }
-        }
 
-        return node;
+            return node;
+        } else if (_fs.FileExists(path)) {
+            return new TreeNode<string>(path.GetName());
+        } else {
+            throw new ArgumentException($"Path does not exist: {path}");
+        }
     }
 
     public bool NodeExists(UPath path) {
