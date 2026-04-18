@@ -76,4 +76,8 @@ public class FileSystemService(IFileSystem fs) {
         return _fs.FileExists(path) || _fs.DirectoryExists(path);
     }
 
+    public void CreateFile(UPath path) {
+        using (_fs.CreateFile(path)) { }
+    }
+
 }

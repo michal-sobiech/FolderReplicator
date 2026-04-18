@@ -8,6 +8,12 @@ using Zio.FileSystems;
 
 namespace FolderReplicator.Tests;
 
+record TestContext(
+    IFileSystem Fs,
+    FileSystemService FsService,
+    FolderReplicationService FolderReplicationService
+);
+
 public class FolderReplicationServiceTests {
 
     private static readonly UPath SRC = new("/src");
@@ -15,8 +21,9 @@ public class FolderReplicationServiceTests {
 
     [Fact]
     public void ReplicateFolder_ShouldCopyDirFromRefToTarget_WhenMissingInTarget() {
-        IFileSystem fs = SetUpTestFs();
-        var folderReplicationService = CreateFolderReplicationService(fs);
+        var testContext = CreateTestContext();
+        IFileSystem fs = testContext.Fs;
+        var folderReplicationService = testContext.FolderReplicationService;
 
         fs.CreateDirectory(SRC / "a");
 
@@ -27,8 +34,9 @@ public class FolderReplicationServiceTests {
 
     [Fact]
     public void ReplicateFolder_ShouldCopyNestedDirFromRefToTarget_WhenMissingInTarget() {
-        IFileSystem fs = SetUpTestFs();
-        var folderReplicationService = CreateFolderReplicationService(fs);
+        var testContext = CreateTestContext();
+        IFileSystem fs = testContext.Fs;
+        var folderReplicationService = testContext.FolderReplicationService;
 
         fs.CreateDirectory(SRC / "a" / "b");
 
@@ -39,10 +47,12 @@ public class FolderReplicationServiceTests {
 
     [Fact]
     public void ReplicateFolder_ShouldCopyFileFromRefToTarget_WhenMissingInTarget() {
-        IFileSystem fs = SetUpTestFs();
-        var folderReplicationService = CreateFolderReplicationService(fs);
+        var testContext = CreateTestContext();
+        IFileSystem fs = testContext.Fs;
+        var fsService = testContext.FsService;
+        var folderReplicationService = testContext.FolderReplicationService;
 
-        using (fs.CreateFile(SRC / "a")) { }
+        fsService.CreateFile(SRC / "a");
 
         folderReplicationService.ReplicateFolder(SRC, DEST);
 
@@ -51,11 +61,13 @@ public class FolderReplicationServiceTests {
 
     [Fact]
     public void ReplicateFolder_ShouldCopyNestedFileFromRefToTarget_WhenMissingInTarget() {
-        IFileSystem fs = SetUpTestFs();
-        var folderReplicationService = CreateFolderReplicationService(fs);
+        var testContext = CreateTestContext();
+        IFileSystem fs = testContext.Fs;
+        var fsService = testContext.FsService;
+        var folderReplicationService = testContext.FolderReplicationService;
 
         fs.CreateDirectory(SRC / "a");
-        using (fs.CreateFile(SRC / "a" / "b")) { }
+        fsService.CreateFile(SRC / "a" / "b");
 
         folderReplicationService.ReplicateFolder(SRC, DEST);
 
@@ -64,10 +76,12 @@ public class FolderReplicationServiceTests {
 
     [Fact]
     public void ReplicateFolder_ShouldRemoveFileInTarget_WhenMissingInReference() {
-        IFileSystem fs = SetUpTestFs();
-        var folderReplicationService = CreateFolderReplicationService(fs);
+        var testContext = CreateTestContext();
+        IFileSystem fs = testContext.Fs;
+        var fsService = testContext.FsService;
+        var folderReplicationService = testContext.FolderReplicationService;
 
-        using (fs.CreateFile(DEST / "a")) { }
+        fsService.CreateFile(DEST / "a");
 
         folderReplicationService.ReplicateFolder(SRC, DEST);
 
@@ -77,8 +91,9 @@ public class FolderReplicationServiceTests {
 
     [Fact]
     public void ReplicateFolder_ShouldRemoveDirInTarget_WhenMissingInReference() {
-        IFileSystem fs = SetUpTestFs();
-        var folderReplicationService = CreateFolderReplicationService(fs);
+        var testContext = CreateTestContext();
+        IFileSystem fs = testContext.Fs;
+        var folderReplicationService = testContext.FolderReplicationService;
 
         fs.CreateDirectory(DEST / "a");
 
@@ -89,11 +104,13 @@ public class FolderReplicationServiceTests {
 
     [Fact]
     public void ReplicateFolder_ShouldRemoveNestedFileInTarget_WhenMissingInReference() {
-        IFileSystem fs = SetUpTestFs();
-        var folderReplicationService = CreateFolderReplicationService(fs);
+        var testContext = CreateTestContext();
+        IFileSystem fs = testContext.Fs;
+        var fsService = testContext.FsService;
+        var folderReplicationService = testContext.FolderReplicationService;
 
         fs.CreateDirectory(DEST / "a");
-        using (fs.CreateFile(DEST / "a" / "b")) { }
+        fsService.CreateFile(DEST / "a" / "b");
 
         folderReplicationService.ReplicateFolder(SRC, DEST);
 
@@ -103,8 +120,9 @@ public class FolderReplicationServiceTests {
 
     [Fact]
     public void ReplicateFolder_ShouldRemoveNestedDirInTarget_WhenMissingInReference() {
-        IFileSystem fs = SetUpTestFs();
-        var folderReplicationService = CreateFolderReplicationService(fs);
+        var testContext = CreateTestContext();
+        IFileSystem fs = testContext.Fs;
+        var folderReplicationService = testContext.FolderReplicationService;
 
         fs.CreateDirectory(DEST / "a" / "b");
 
@@ -113,7 +131,28 @@ public class FolderReplicationServiceTests {
         fs.DirectoryExists(DEST / "a").Should().BeFalse();
     }
 
-    private IFileSystem SetUpTestFs() {
+    [Fact]
+    public void ReplicateFolder_ShouldReplaceFileWithDir_WhenDifferent() {
+        var testContext = CreateTestContext();
+        IFileSystem fs = testContext.Fs;
+        var folderReplicationService = testContext.FolderReplicationService;
+
+        fs.CreateDirectory(SRC / "a");
+        fs.CreateDirectory(SRC / "a");
+
+        folderReplicationService.ReplicateFolder(SRC, DEST);
+
+        fs.DirectoryExists(DEST / "a").Should().BeFalse();
+    }
+
+    private TestContext CreateTestContext() {
+        var fs = CreateTestFileSystem();
+        var fsService = new FileSystemService(fs);
+        var folderReplicationService = CreateFolderReplicationService(fs, fsService);
+        return new TestContext(fs, fsService, folderReplicationService);
+    }
+
+    private IFileSystem CreateTestFileSystem() {
         var fs = new MemoryFileSystem();
 
         fs.CreateDirectory(SRC);
@@ -122,8 +161,10 @@ public class FolderReplicationServiceTests {
         return fs;
     }
 
-    private FolderReplicationService CreateFolderReplicationService(IFileSystem fs) {
-        var fsService = new FileSystemService(fs);
+    private FolderReplicationService CreateFolderReplicationService(
+        IFileSystem fs,
+        FileSystemService fsService
+    ) {
         var fsNodeComparer = new FileSystemNodeComparer(fs);
         var dirDeepComparer = new DirDeepComparer(fs, fsService, fsNodeComparer);
         return new FolderReplicationService(fs, fsService, dirDeepComparer);
