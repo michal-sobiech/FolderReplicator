@@ -5,8 +5,6 @@ COPY . .
 RUN dotnet build --output ./out
 
 USER app
-RUN mkdir ~/src ~/dest
-RUN touch ~/src/test-file.txt
-RUN mkdir ~/src/test-dir
+RUN mkdir ~/src && touch ~/src/test-file.txt && mkdir ~/src/test-dir && mkdir ~/dest
 
 ENTRYPOINT ["dotnet", "out/FolderReplicator.dll", "replicate", "/home/app/src", "/home/app/dest", "1000"]
