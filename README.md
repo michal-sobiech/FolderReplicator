@@ -13,6 +13,10 @@
 
 You can now interact with the program in a safe environment. The reference folder is `/home/app/src` and the target folder is `/home/app/dest`. Everything from the reference folder will be replicated to the target folder. Everything that is in the target folder and not in the reference folder will be removed.
 
+# How to run tests
+1. `cd` to project's main directory
+2. `dotnet test`
+
 # Implementation
 1. Create tree representations of reference and target folders. Result: 2 trees with type `TreeNode`.
 2. Search the trees for differences.
