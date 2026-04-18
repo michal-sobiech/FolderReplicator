@@ -1,15 +1,14 @@
 # How to run
 1. `cd` to project's main directory
 2. `dotnet build`
-3. Find the created `FolderReplicator.dll`, it should be in `src/FolderReplicator/bin/Debug/net8.0/FolderReplicator.dll`
-4. Run it: `dotnet FolderReplicator.dll replicate [src-folder] [dest-folder] [period-ms]`
+3. `cd src/FolderReplicator/bin/Debug/net8.0/FolderReplicator.dll`
+5. `dotnet FolderReplicator.dll replicate [src-folder] [dest-folder] [period-ms]`. For example: `dotnet FolderReplicator.dll replicate ~/src ~/dest 1000`
 
 # How to run in a safe environment
 1. `cd` to project's main directory
 2. `docker build -t folder-replicator -f Dockerfile .`
-3. `docker run -it folder-replicator`
-4. `docker run --rm --name folder-replicator folder-replicator:latest`
-5. In a different terminal: `docker exec -it folder-replicator bash`
+3. `docker run --rm --name folder-replicator folder-replicator:latest`
+4. In a different terminal: `docker exec -it folder-replicator bash`
 
 You can now interact with the program in a safe environment. The reference folder is `/home/app/src` and the target folder is `/home/app/dest`. Everything from the reference folder will be replicated to the target folder. Everything that is in the target folder and not in the reference folder will be removed.
 
