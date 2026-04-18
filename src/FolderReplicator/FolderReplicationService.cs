@@ -5,14 +5,14 @@ using Zio;
 namespace FolderReplicator;
 
 public class FolderReplicationService(
-    DirDeepComparer dirDeepComparer,
+    IFileSystem fs,
     FileSystemService fileSystemService,
-    IFileSystem fs
+    DirDeepComparer dirDeepComparer
 ) {
 
-    private readonly DirDeepComparer _dirDeepComparer = dirDeepComparer;
-    private readonly FileSystemService _fileSystemService = fileSystemService;
     private readonly IFileSystem _fs = fs;
+    private readonly FileSystemService _fileSystemService = fileSystemService;
+    private readonly DirDeepComparer _dirDeepComparer = dirDeepComparer;
 
     public void ReplicateFolder(UPath referenceDir, UPath targetDir) {
         var comparisonResult = _dirDeepComparer.DeepCompareDirs(referenceDir, targetDir);
@@ -33,7 +33,10 @@ public class FolderReplicationService(
             .ToList();
 
         DeleteNodes(targetDir, different);
+        CopyNodes(referenceDir, different, targetDir);
+
         DeleteNodes(targetDir, onlyInTarget);
+
         CopyNodes(referenceDir, onlyInRef, targetDir);
     }
 
