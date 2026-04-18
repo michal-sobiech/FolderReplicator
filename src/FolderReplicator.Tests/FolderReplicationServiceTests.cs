@@ -135,15 +135,64 @@ public class FolderReplicationServiceTests {
     public void ReplicateFolder_ShouldReplaceFileWithDir_WhenDifferent() {
         var testContext = CreateTestContext();
         IFileSystem fs = testContext.Fs;
+        var fsService = testContext.FsService;
         var folderReplicationService = testContext.FolderReplicationService;
 
         fs.CreateDirectory(SRC / "a");
-        fs.CreateDirectory(SRC / "a");
+        fsService.CreateFile(DEST / "a");
 
         folderReplicationService.ReplicateFolder(SRC, DEST);
 
+        fs.DirectoryExists(DEST / "a").Should().BeTrue();
+        fs.FileExists(DEST / "a").Should().BeFalse();
+    }
+
+    [Fact]
+    public void ReplicateFolder_ShouldReplaceDirWithFile_WhenDifferent() {
+        var testContext = CreateTestContext();
+        IFileSystem fs = testContext.Fs;
+        var fsService = testContext.FsService;
+        var folderReplicationService = testContext.FolderReplicationService;
+
+        fsService.CreateFile(SRC / "a");
+        fs.CreateDirectory(DEST / "a");
+
+        folderReplicationService.ReplicateFolder(SRC, DEST);
+
+        fs.FileExists(DEST / "a").Should().BeTrue();
         fs.DirectoryExists(DEST / "a").Should().BeFalse();
     }
+
+    [Fact]
+    public void ReplicateFolder_ShouldReplaceFile_WhenDifferentContents() {
+        var testContext = CreateTestContext();
+        IFileSystem fs = testContext.Fs;
+        var folderReplicationService = testContext.FolderReplicationService;
+
+        string srcText = "text from src";
+        string destText = "text from dest";
+
+        using (var stream = fs.CreateFile(SRC / "a"))
+        using (var writer = new StreamWriter(stream)) {
+            writer.Write(srcText);
+        }
+
+        using (var stream = fs.CreateFile(DEST / "a"))
+        using (var writer = new StreamWriter(stream)) {
+            writer.Write(destText);
+        }
+
+        folderReplicationService.ReplicateFolder(SRC, DEST);
+
+        fs.FileExists(DEST / "a").Should().BeTrue();
+
+        using (var stream = fs.OpenFile(DEST / "a", FileMode.Open, FileAccess.Read))
+        using (var reader = new StreamReader(stream)) {
+            string content = reader.ReadToEnd();
+            (content == srcText).Should().BeTrue();
+        }
+    }
+
 
     private TestContext CreateTestContext() {
         var fs = CreateTestFileSystem();
