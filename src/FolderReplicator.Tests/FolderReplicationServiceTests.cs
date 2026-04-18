@@ -29,6 +29,25 @@ public class FolderReplicationServiceTests {
     }
 
     [Fact]
+    public void ReplicateFolder_ShouldCopyNestedDirFromRefToTarget_WhenMissingInTarget() {
+        IFileSystem fs = new MemoryFileSystem();
+
+        UPath src = new("/src");
+        UPath dest = new("/dest");
+
+        fs.CreateDirectory(src);
+        fs.CreateDirectory("/src/a");
+        fs.CreateDirectory("/src/a/b");
+
+        fs.CreateDirectory(dest);
+
+        var folderReplicationService = CreateFolderReplicationService(fs);
+        folderReplicationService.ReplicateFolder(src, dest);
+
+        fs.DirectoryExists("/dest/a/b").Should().BeTrue();
+    }
+
+    [Fact]
     public void ReplicateFolder_ShouldCopyFileFromRefToTarget_WhenMissingInTarget() {
         IFileSystem fs = new MemoryFileSystem();
 
