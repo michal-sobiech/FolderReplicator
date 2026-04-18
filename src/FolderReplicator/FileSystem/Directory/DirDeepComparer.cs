@@ -39,8 +39,6 @@ public class DirDeepComparer(
         List<DirDeepCompareResultRow> result = [];
 
         Func<TreeNode<string>, bool> OnTreeNodeVisit = treeNode => {
-            Console.WriteLine($"LOG_23 node value: {treeNode.Value}, num children: {treeNode.Children.Count}");
-
             if (treeNode.Parent == null) {
                 // Skip the root
                 return false;
