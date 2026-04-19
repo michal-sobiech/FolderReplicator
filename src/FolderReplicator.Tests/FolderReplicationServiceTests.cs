@@ -3,6 +3,8 @@ using FluentAssertions;
 using FolderReplicator.FileSystem.Directory;
 using FolderReplicator.FileSystem.Node;
 
+using Serilog;
+
 using Zio;
 using Zio.FileSystems;
 
@@ -214,9 +216,10 @@ public class FolderReplicationServiceTests {
         IFileSystem fs,
         FileSystemService fsService
     ) {
+        var logger = new LoggerConfiguration().CreateLogger();
         var fsNodeComparer = new FileSystemNodeComparer(fs);
         var dirDeepComparer = new DirDeepComparer(fs, fsService, fsNodeComparer);
-        return new FolderReplicationService(fs, fsService, dirDeepComparer);
+        return new FolderReplicationService(logger, fsService, dirDeepComparer);
     }
 
 }

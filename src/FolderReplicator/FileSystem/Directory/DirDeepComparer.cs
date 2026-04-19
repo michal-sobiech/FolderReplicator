@@ -19,21 +19,18 @@ public class DirDeepComparer(
         UPath referenceDir,
         UPath targetDir
     ) {
-        var referenceBase = referenceDir.GetDirectory();
-        var targetBase = targetDir.GetDirectory();
-
         var referenceTree = _fsService.CreateTreeFromPath(referenceDir);
         var targetTree = _fsService.CreateTreeFromPath(targetDir);
 
         return [
-            ..CalcDifferentAndOnlyInReference(referenceBase, targetBase, referenceTree),
-            ..CalcOnlyInTarget(referenceBase, targetBase, targetTree)
+            ..CalcDifferentAndOnlyInReference(referenceDir, targetDir, referenceTree),
+            ..CalcOnlyInTarget(referenceDir, targetDir, targetTree)
         ];
     }
 
     private IEnumerable<DirDeepCompareResultRow> CalcDifferentAndOnlyInReference(
-        UPath referenceBase,
-        UPath targetBase,
+        UPath referenceDir,
+        UPath targetDir,
         TreeNode<string> referenceTree
     ) {
         List<DirDeepCompareResultRow> result = [];
@@ -44,11 +41,11 @@ public class DirDeepComparer(
                 return false;
             }
 
-            List<string> treeNodePath = treeNode.GetPath();
-            UPath fsNodeRelPath = FileSystemUtils.CreateUPath(treeNodePath);
+            List<string> treeNodePathNoRoot = treeNode.GetPath().Skip(1).ToList();
+            UPath fsNodeRelPath = FileSystemUtils.CreateUPath(treeNodePathNoRoot);
 
-            UPath referenceFsNode = referenceBase / fsNodeRelPath;
-            UPath targetFsNode = targetBase / fsNodeRelPath;
+            UPath referenceFsNode = referenceDir / fsNodeRelPath;
+            UPath targetFsNode = targetDir / fsNodeRelPath;
 
             bool existsInTarget = _fsService.NodeExists(targetFsNode);
             if (!existsInTarget) {
@@ -56,6 +53,7 @@ public class DirDeepComparer(
                 result.Add(resultRow);
                 return true;
             }
+
 
             if (!_fsNodeComparer.AreNodesEqual(referenceFsNode, targetFsNode)) {
                 var resultRow = new DifferentNodes(fsNodeRelPath);
@@ -72,8 +70,8 @@ public class DirDeepComparer(
     }
 
     private IEnumerable<DirDeepCompareResultRow> CalcOnlyInTarget(
-        UPath referenceBase,
-        UPath targetBase,
+        UPath referenceDir,
+        UPath targetDir,
         TreeNode<string> targetTree
     ) {
         List<DirDeepCompareResultRow> result = [];
@@ -84,11 +82,11 @@ public class DirDeepComparer(
                 return false;
             }
 
-            List<string> treeNodePath = treeNode.GetPath();
-            UPath fsNodeRelPath = FileSystemUtils.CreateUPath(treeNodePath);
+            List<string> treeNodePathNoRoot = treeNode.GetPath().Skip(1).ToList();
+            UPath fsNodeRelPath = FileSystemUtils.CreateUPath(treeNodePathNoRoot);
 
-            UPath referenceFsNode = referenceBase / fsNodeRelPath;
-            UPath targetFsNode = targetBase / fsNodeRelPath;
+            UPath referenceFsNode = referenceDir / fsNodeRelPath;
+            UPath targetFsNode = targetDir / fsNodeRelPath;
 
             bool existsInReference = _fsService.NodeExists(referenceFsNode);
             if (!existsInReference) {

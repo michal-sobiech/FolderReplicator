@@ -1,16 +1,20 @@
+using System.Runtime.InteropServices;
+
 using FolderReplicator.FileSystem.Directory;
+
+using Serilog;
 
 using Zio;
 
 namespace FolderReplicator;
 
 public class FolderReplicationService(
-    IFileSystem fs,
+    ILogger logger,
     FileSystemService fileSystemService,
     DirDeepComparer dirDeepComparer
 ) {
 
-    private readonly IFileSystem _fs = fs;
+    private readonly ILogger _logger = logger;
     private readonly FileSystemService _fileSystemService = fileSystemService;
     private readonly DirDeepComparer _dirDeepComparer = dirDeepComparer;
 
@@ -39,6 +43,7 @@ public class FolderReplicationService(
         foreach (var node in nodes) {
             UPath path = dir / node;
             _fileSystemService.DeleteNode(path);
+            _logger.Information($"Delete {path}");
         }
     }
 
@@ -48,6 +53,7 @@ public class FolderReplicationService(
             UPath destAbs = dest / node;
 
             _fileSystemService.CopyNode(srcAbs, destAbs);
+            _logger.Information($"Copy {srcAbs} to {destAbs}");
         }
     }
 

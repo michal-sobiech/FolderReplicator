@@ -10,10 +10,10 @@ public class TreeNode<T>(T value) {
         var path = new List<T>();
 
         var node = this;
-        while (node.Parent != null) {
+        do {
             path.Add(node.Value);
             node = node.Parent;
-        }
+        } while (node != null);
 
         path.Reverse();
         return path;

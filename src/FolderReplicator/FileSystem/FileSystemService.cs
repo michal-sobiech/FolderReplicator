@@ -23,7 +23,7 @@ public class FileSystemService(IFileSystem fs) {
     public void DeleteNode(UPath node) {
         if (_fs.FileExists(node)) {
             _fs.DeleteFile(node);
-        } else if (_fs.DirectoryExists(node)) {
+        } else {
             _fs.DeleteDirectory(node, true);
         }
     }
@@ -31,7 +31,7 @@ public class FileSystemService(IFileSystem fs) {
     public void CopyNode(UPath src, UPath dest) {
         if (_fs.FileExists(src)) {
             _fs.CopyFile(src, dest, overwrite: true);
-        } else if (_fs.DirectoryExists(src)) {
+        } else {
             CopyDirectory(src, dest);
         }
     }
