@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-
 using FolderReplicator.FileSystem.Directory;
 
 using Serilog;
