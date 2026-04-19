@@ -2,7 +2,7 @@
 1. `cd` to project's main directory
 2. `dotnet build`
 3. `cd src/FolderReplicator/bin/Debug/net8.0/FolderReplicator.dll`
-5. `dotnet FolderReplicator.dll replicate [src-folder] [dest-folder] [period-ms] [log-file]`. For example: `dotnet FolderReplicator.dll replicate ~/src ~/dest 1000`
+5. `dotnet FolderReplicator.dll replicate [src-folder] [dest-folder] [period-ms] [log-file]`. For example: `dotnet FolderReplicator.dll replicate /home/app/src /home/app/dest 1000 /home/app/log.txt`
 
 # How to run in a safe environment
 1. `cd` to project's main directory
